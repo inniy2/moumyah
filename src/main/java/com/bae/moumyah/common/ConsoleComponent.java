@@ -7,24 +7,24 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "console")
 public class ConsoleComponent {
 	
-	private long fetchMetrics;
+	private long fetch_metrics;
 	
-	private String serverUrl;
+	private String server_url;
 
 	public long getFetchMetrics() {
-		return fetchMetrics;
+		return fetch_metrics;
 	}
 
-	public void setFetchMetrics(long fetchMetrics) {
-		this.fetchMetrics = fetchMetrics;
+	public void setFetchMetrics(long fetch_metrics) {
+		this.fetch_metrics = fetch_metrics;
 	}
 
 	public String getServerUrl() {
-		return serverUrl;
+		return server_url;
 	}
 
-	public void setServerUrl(String serverUrl) {
-		this.serverUrl = serverUrl;
+	public void setServerUrl(String server_url) {
+		this.server_url = server_url;
 	}
 
 	
