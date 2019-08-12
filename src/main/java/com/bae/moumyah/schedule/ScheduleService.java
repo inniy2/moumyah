@@ -16,6 +16,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import com.bae.moumyah.common.HostComponent;
+import com.bae.moumyah.common.HostComponentDTO;
 import com.google.gson.Gson;
 
 @Service
@@ -24,6 +26,9 @@ public class ScheduleService {
 	private static final Logger logger = LoggerFactory.getLogger(ScheduleService.class);
     private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
 	
+    
+    @Autowired
+    HostComponent hostComponent;
     
 	@Value("${console.server_url}")
     private String postUrl;
@@ -35,52 +40,17 @@ public class ScheduleService {
     private String clusterName;
 	
 	
-	
-	public HostDTO getHostDTO() {
-		
-		HostDTO hostDTO = new HostDTO();
-		
-		hostDTO.setId(clientId);
-		hostDTO.setClusterName(clusterName);
-		hostDTO.setCpuPercentage((float)0.67);
-		hostDTO.setFreeDiskPercentage((float)45.1);
-		hostDTO.setTotalDiskSize(42949672960L);		
-		hostDTO.setFreeDiskSize(22949672960L);
-		hostDTO.setMysqlDataSize(12949672960L);
-		hostDTO.setGhostVersion("1.0.48");
-		hostDTO.setGhostSockCount(0);
-		hostDTO.setGhostPostponeFile(false);
-		hostDTO.setGhostRunning(false);
-		hostDTO.setMysqlPid(true);
-		hostDTO.setMysqlRunning(true);
-		hostDTO.setMysqlSock(true);
+	private final String mysqlDirectory = "/mysql";
+	private final String tmpDirectory = "/tmp";
+	private final String ghostPostponeFlag = "/tmp/ghost.postpone.flag";
+	private final String mysqldPid = "/var/run/mysqld/mysqld.pid";
+	private final String mysqldSock = "/var/run/mysqld/mysqld.sock";
+	private final String cmd = "ps -ef";
+	private final String checkMysqld = "mysqld";
+	private final String checkGhost = "gh-ost";
+	private final String checkGhostSock = "gh-ost.*.*.sock";
 
-		
-		logger.debug(hostDTO.toString());
-		
-		return hostDTO;
-	}
 	
-	public MySQLDTO getMySQLDTO() {
-		
-		MySQLDTO mysqlDTO = new MySQLDTO();
-		
-		mysqlDTO.setId(clientId);
-		mysqlDTO.setReportHostName("test-d1");
-		mysqlDTO.setMysqlVersion("5.6.34");
-		mysqlDTO.setInnodbVersion("234.234");
-		mysqlDTO.setReadOnly(false);
-		mysqlDTO.setMasterActiveCount(0);
-		mysqlDTO.setSlaveCount(3);
-		mysqlDTO.setMasterHostName("N/A");
-		
-		
-		logger.debug(mysqlDTO.toString());
-		
-		return mysqlDTO;
-	}
-	
-
 	
     @Scheduled(fixedRateString = "${console.fetch_metrics}")
     public void sendHostDTO() {
@@ -88,9 +58,37 @@ public class ScheduleService {
     	
     	try {
     		
+    		/*
+    		 * Set server url to feed up the information
+    		 */
     		String apiUrl = "/host/savehost";
-    		HostDTO hostDTO = this.getHostDTO();
     		
+    		/*
+    		 * Set HostDTO information from OS ( Using HostComponent ) 
+    		 */
+    		HostComponentDTO hostComponentDTO = new HostComponentDTO();
+    		
+    		hostComponentDTO.setMysqlDirectory(mysqlDirectory);
+    		hostComponentDTO.setTmpDirectory(tmpDirectory);
+    		hostComponentDTO.setGhostPostponeFlag(ghostPostponeFlag);
+    		hostComponentDTO.setMysqldPid(mysqldPid);
+    		hostComponentDTO.setMysqldSock(mysqldSock);
+    		hostComponentDTO.setCmd(cmd);
+    		hostComponentDTO.setCheckMysqld(checkMysqld);
+    		hostComponentDTO.setCheckGhost(checkGhost);
+    		hostComponentDTO.setCheckGhostSock(checkGhostSock);
+    		
+    		
+    		HostDTO hostDTO = hostComponent.getHostDTO(hostComponentDTO);
+    		hostDTO.setId(clientId);
+    		hostDTO.setClusterName(clusterName);
+    		
+    		
+    		/*
+    		 * Gson setup using url and HostDTO
+    		 * Objec to Json
+    		 * Send Json via post 
+    		 */
     	    Gson         gson          = new Gson();
     	    HttpClient   httpClient    = HttpClientBuilder.create().build();
     	    HttpPost     post          = new HttpPost(postUrl+apiUrl);
@@ -99,8 +97,7 @@ public class ScheduleService {
     	    post.setEntity(postingString);
     	    post.setHeader("Content-type", "application/json");
     	    HttpResponse  response = httpClient.execute(post);
-    	    
-    	    
+
     	    if(response.getStatusLine().getStatusCode() != 200) {
     	    	logger.debug("------------------------ ERROR -------------------");
     	    	logger.error(postUrl);
@@ -126,14 +123,32 @@ public class ScheduleService {
     	
     }
     
+    
+    
+    
     @Scheduled(fixedRateString = "${console.fetch_metrics}")
     public void sendMySQLDTO() {
     	
     	try {
     		
+    		/*
+    		 * Set server url to feed up the information
+    		 */
     		String apiUrl = "/mysql/savemysql";
-    		MySQLDTO mysqlDTO = this.getMySQLDTO();
+    		// MySQLDTO mysqlDTO = this.getMySQLDTO();
     		
+    		
+    		
+    		MySQLDTO mysqlDTO = hostComponent.getMySQLDTO();
+    		mysqlDTO.setId(clientId);
+    		mysqlDTO.setReportHostName("test-d1");
+    		
+    		
+    		/*
+    		 * Gson setup using url and mysqlDTO
+    		 * Objec to Json
+    		 * Send Json via post 
+    		 */
     	    Gson         gson          = new Gson();
     	    HttpClient   httpClient    = HttpClientBuilder.create().build();
     	    HttpPost     post          = new HttpPost(postUrl+apiUrl);
