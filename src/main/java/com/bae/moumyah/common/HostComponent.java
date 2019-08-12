@@ -3,7 +3,6 @@ package com.bae.moumyah.common;
 import org.springframework.stereotype.Component;
 
 import com.bae.moumyah.schedule.HostDTO;
-import com.bae.moumyah.schedule.MySQLDTO;
 
 import java.time.format.DateTimeFormatter;
 import java.util.regex.Matcher;
@@ -61,24 +60,6 @@ public class HostComponent {
 		
 	}
 	
-	
-	public MySQLDTO getMySQLDTO() {
-		
-		MySQLDTO mysqlDTO = new MySQLDTO();
-		
-	
-		mysqlDTO.setMysqlVersion("5.6.34");
-		mysqlDTO.setInnodbVersion("234.234");
-		mysqlDTO.setReadOnly(false);
-		mysqlDTO.setMasterActiveCount(0);
-		mysqlDTO.setSlaveCount(3);
-		mysqlDTO.setMasterHostName("N/A");
-		
-		
-
-		
-		return mysqlDTO;
-	}
 	
 	
 	

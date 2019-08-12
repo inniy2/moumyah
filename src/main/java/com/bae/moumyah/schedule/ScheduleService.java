@@ -3,6 +3,8 @@ package com.bae.moumyah.schedule;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.time.format.DateTimeFormatter;
+import java.util.Iterator;
+import java.util.List;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -18,6 +20,9 @@ import org.springframework.stereotype.Service;
 
 import com.bae.moumyah.common.HostComponent;
 import com.bae.moumyah.common.HostComponentDTO;
+
+import com.bae.moumyah.common.MySQLRepository;
+import com.bae.moumyah.common.MySQLVariableDTO;
 import com.google.gson.Gson;
 
 @Service
@@ -29,6 +34,10 @@ public class ScheduleService {
     
     @Autowired
     HostComponent hostComponent;
+    
+    @Autowired
+    MySQLRepository mysqlVariableRepository;
+    
     
 	@Value("${console.server_url}")
     private String postUrl;
@@ -63,8 +72,9 @@ public class ScheduleService {
     		 */
     		String apiUrl = "/host/savehost";
     		
+    		
     		/*
-    		 * Set HostDTO information from OS ( Using HostComponent ) 
+    		 * Create HostComponentDTO
     		 */
     		HostComponentDTO hostComponentDTO = new HostComponentDTO();
     		
@@ -79,7 +89,15 @@ public class ScheduleService {
     		hostComponentDTO.setCheckGhostSock(checkGhostSock);
     		
     		
+    		/*
+    		 * Create HostDTO using HostComponentDTO
+    		 */
     		HostDTO hostDTO = hostComponent.getHostDTO(hostComponentDTO);
+    		
+    		
+    		/*
+    		 * Setup HostDTO using @Value
+    		 */
     		hostDTO.setId(clientId);
     		hostDTO.setClusterName(clusterName);
     		
@@ -102,7 +120,7 @@ public class ScheduleService {
     	    	logger.debug("------------------------ ERROR -------------------");
     	    	logger.error(postUrl);
     	    	logger.error(response.getStatusLine().toString());
-    	    	logger.error(gson.toJson(null));
+    	    	logger.error(gson.toJson(hostDTO));
     	    }else {
     	    	logger.debug("------------------------ DEBUG -------------------");
     	    	logger.debug(postUrl);
@@ -137,11 +155,23 @@ public class ScheduleService {
     		String apiUrl = "/mysql/savemysql";
     		// MySQLDTO mysqlDTO = this.getMySQLDTO();
     		
+    		/*
+    		 * Create HostComponentDTO
+    		 */
+    		// MySQLComponentDTO mysqlComponentDTO = new MySQLComponentDTO();
+    		//MySQLDTO mysqlDTO = new MySQLDTO();
+    		
+    		/*
+    		 * Create mysqlDTO using MysqlComponentDTO
+    		 */
+    		MySQLDTO mysqlDTO = mysqlVariableRepository.getMySQLDTO();
     		
     		
-    		MySQLDTO mysqlDTO = hostComponent.getMySQLDTO();
+    		/*
+    		 * Setup MySQLDTO using @Value
+    		 */
     		mysqlDTO.setId(clientId);
-    		mysqlDTO.setReportHostName("test-d1");
+    		mysqlDTO.setReportHostName(clusterName);
     		
     		
     		/*
@@ -163,7 +193,7 @@ public class ScheduleService {
     	    	logger.debug("------------------------ ERROR -------------------");
     	    	logger.error(postUrl);
     	    	logger.error(response.getStatusLine().toString());
-    	    	logger.error(gson.toJson(null));
+    	    	logger.error(gson.toJson(mysqlDTO));
     	    }else {
     	    	logger.debug("------------------------ DEBUG -------------------");
     	    	logger.debug(postUrl);
