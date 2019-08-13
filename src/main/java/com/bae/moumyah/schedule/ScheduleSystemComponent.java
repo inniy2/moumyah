@@ -1,4 +1,4 @@
-package com.bae.moumyah.common;
+package com.bae.moumyah.schedule;
 
 import org.springframework.stereotype.Component;
 
@@ -19,51 +19,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Component
-public class HostComponent {
+public class ScheduleSystemComponent {
 	
-	private static final Logger logger = LoggerFactory.getLogger(HostComponent.class);
+	private static final Logger logger = LoggerFactory.getLogger(ScheduleSystemComponent.class);
     private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
 
     private OperatingSystemMXBean operationSystemBean = (com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
     private ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
     
     
-	public HostDTO getHostDTO(HostComponentDTO hostComponentDTO) {
-		
-		
-		HostDTO hostDTO = new HostDTO();
-		
-		File mysqlDirectory    = new File(hostComponentDTO.getMysqlDirectory());
-		File tempDirectory     = new File(hostComponentDTO.getTmpDirectory());
-		File ghostPostponeFlag = new File(hostComponentDTO.getGhostPostponeFlag());
-		File mysqlPid          = new File(hostComponentDTO.getMysqldPid());
-		File mysqlSock         = new File(hostComponentDTO.getMysqldSock());
-		
-		hostDTO.setCpuPercentage(  this.getCpuPercentage());
-			
-		hostDTO.setTotalDiskSize(mysqlDirectory.getTotalSpace());
-		hostDTO.setFreeDiskSize(mysqlDirectory.getUsableSpace());
-		hostDTO.setMysqlDataSize(mysqlDirectory.getTotalSpace()- mysqlDirectory.getUsableSpace());		
-		hostDTO.setFreeDiskPercentage((float)mysqlDirectory.getUsableSpace() / (float)mysqlDirectory.getTotalSpace() * 100);
-		
-		hostDTO.setGhostVersion(  this.getStringByShell("gh-ost --version"));
-		hostDTO.setGhostSockCount(this.getFileCount(tempDirectory, hostComponentDTO.getCheckGhostSock()));
-		hostDTO.setGhostPostponeFile(ghostPostponeFlag.exists());
-		hostDTO.setGhostRunning(  this.getIsByShell("ps -ef","gh-ost"));
-		
-		hostDTO.setMysqlPid(mysqlPid.exists());
-		hostDTO.setMysqlRunning(   this.getIsByShell("ps -ef","mysqld"));
-		hostDTO.setMysqlSock(mysqlSock.exists());
-		
-		
-		return hostDTO;
-		
-	}
 	
-	
-	
-	
-	private float getCpuPercentage() {
+	public float getCpuPercentage() {
 		
     	Double processCpuLoad = operationSystemBean.getProcessCpuLoad() * 100;
     	Double systemCpuLoad  = operationSystemBean.getSystemCpuLoad() * 100;
@@ -71,18 +37,33 @@ public class HostComponent {
     	
     	Double totalCpuLoad = processCpuLoad + systemCpuLoad;
     	
-        logger.debug("------------------------ DEBUG -------------------");
-    	logger.debug(totalCpuLoad.toString());
-    	
     	return Float.parseFloat(totalCpuLoad.toString());
     	
 	}
 	
 	
+	public boolean isMySQLRunning(String cmd, String patternStr) {
+		return this.getIsByShell(cmd, patternStr);
+	}
 	
-	/*
-	 * getStringByShell 
-	 */
+	public boolean isGhostRunning(String cmd, String patternStr) {
+		return this.getIsByShell(cmd, patternStr);
+	}
+	
+	public String getGhostVersion(String str) {
+		return this.getStringByShell(str);
+	}
+	
+	public int getGhostSockCount(File directory, String fileNamePattern) {
+		return getFileCount(directory, fileNamePattern);
+	}
+	
+	
+
+	
+	
+	
+	
 	private String getStringByShell(String cmd, String patternStr) {
     	
 		Pattern pattern = Pattern.compile(patternStr);
@@ -121,11 +102,7 @@ public class HostComponent {
 	}
 	
 	
-	/*
-	 * getStringByShell 
-	 * example input is gh-ost --version
-	 * return 1.0.48
-	 */
+
 	private String getStringByShell(String cmd) {
     	
 		

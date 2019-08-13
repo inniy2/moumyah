@@ -1,10 +1,12 @@
 package com.bae.moumyah.schedule;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.time.format.DateTimeFormatter;
 import java.util.Iterator;
 import java.util.List;
+
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -18,11 +20,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import com.bae.moumyah.common.HostComponent;
-import com.bae.moumyah.common.HostComponentDTO;
 
-import com.bae.moumyah.common.MySQLRepository;
-import com.bae.moumyah.common.MySQLVariableDTO;
+
 import com.google.gson.Gson;
 
 @Service
@@ -33,10 +32,10 @@ public class ScheduleService {
 	
     
     @Autowired
-    HostComponent hostComponent;
+    ScheduleSystemComponent scheduleSystemComponent;
     
     @Autowired
-    MySQLRepository mysqlVariableRepository;
+    ScheduleRepository scheduleRepository;
     
     
 	@Value("${console.server_url}")
@@ -49,17 +48,13 @@ public class ScheduleService {
     private String clusterName;
 	
 	
-	private final String mysqlDirectory = "/mysql";
-	private final String tmpDirectory = "/tmp";
-	private final String ghostPostponeFlag = "/tmp/ghost.postpone.flag";
-	private final String mysqldPid = "/var/run/mysqld/mysqld.pid";
-	private final String mysqldSock = "/var/run/mysqld/mysqld.sock";
-	private final String cmd = "ps -ef";
-	private final String checkMysqld = "mysqld";
-	private final String checkGhost = "gh-ost";
-	private final String checkGhostSock = "gh-ost.*.*.sock";
+	private String mysqlDirectory = "/mysql";
+	private String tmpDirectory = "/tmp";
+	private String ghostPostponeFlag = "/tmp/ghost.postpone.flag";
+	private String mysqldPid = "/var/run/mysqld/mysqld.pid";
+	private String mysqldSock = "/var/run/mysqld/mysqld.sock";
 
-	
+
 	
     @Scheduled(fixedRateString = "${console.fetch_metrics}")
     public void sendHostDTO() {
@@ -73,33 +68,114 @@ public class ScheduleService {
     		String apiUrl = "/host/savehost";
     		
     		
-    		/*
-    		 * Create HostComponentDTO
-    		 */
-    		HostComponentDTO hostComponentDTO = new HostComponentDTO();
-    		
-    		hostComponentDTO.setMysqlDirectory(mysqlDirectory);
-    		hostComponentDTO.setTmpDirectory(tmpDirectory);
-    		hostComponentDTO.setGhostPostponeFlag(ghostPostponeFlag);
-    		hostComponentDTO.setMysqldPid(mysqldPid);
-    		hostComponentDTO.setMysqldSock(mysqldSock);
-    		hostComponentDTO.setCmd(cmd);
-    		hostComponentDTO.setCheckMysqld(checkMysqld);
-    		hostComponentDTO.setCheckGhost(checkGhost);
-    		hostComponentDTO.setCheckGhostSock(checkGhostSock);
-    		
-    		
-    		/*
-    		 * Create HostDTO using HostComponentDTO
-    		 */
-    		HostDTO hostDTO = hostComponent.getHostDTO(hostComponentDTO);
-    		
-    		
-    		/*
-    		 * Setup HostDTO using @Value
-    		 */
+    		HostDTO hostDTO = new  HostDTO(); 
     		hostDTO.setId(clientId);
     		hostDTO.setClusterName(clusterName);
+    		
+    		
+    		File mysqlDirectory    = new File(this.mysqlDirectory);
+    		File tempDirectory     = new File(this.tmpDirectory);
+    		File ghostPostponeFlag = new File(this.ghostPostponeFlag);
+    		File mysqldPid          = new File(this.mysqldPid);
+    		File mysqldSock         = new File(this.mysqldSock);
+    		
+    		
+    		float fVaule = 0L;
+    		Long lVaule = 0L;
+    		String str = null;
+    		int cnt = 0;
+    		boolean isFile = false;
+    		boolean isProcess = false;
+    		
+    		/*
+    		 * CPU
+    		 */
+    		fVaule = scheduleSystemComponent.getCpuPercentage();
+    		hostDTO.setCpuPercentage( fVaule );
+    		logger.debug("DEBUG: CPU : "+ fVaule);
+    		
+    		
+    		/*
+    		 * Total disk size
+    		 */
+    		lVaule = mysqlDirectory.getTotalSpace();
+    		hostDTO.setTotalDiskSize(lVaule);
+    		logger.debug("DEBUG: mysql total disk size : "+ lVaule);
+    		
+    		
+    		/*
+    		 * free size
+    		 */
+    		lVaule = mysqlDirectory.getUsableSpace();
+    		hostDTO.setFreeDiskSize(lVaule);
+    		logger.debug("DEBUG: free disk size : "+ lVaule);
+    		
+ 
+    		/*
+    		 * data  size
+    		 */
+    		lVaule =  mysqlDirectory.getTotalSpace()- mysqlDirectory.getUsableSpace();
+    		hostDTO.setMysqlDataSize(lVaule);	
+    		logger.debug("DEBUG: mysql data size : "+ lVaule);
+    		
+    		/*
+    		 * free space percentage
+    		 */
+    		fVaule = (float)mysqlDirectory.getUsableSpace() / (float)mysqlDirectory.getTotalSpace() * 100;
+    		hostDTO.setFreeDiskPercentage(fVaule);
+    		logger.debug("DEBUG: free space percentage : "+ fVaule);
+    		
+    		/*
+    		 * gh-ost version
+    		 */
+    		str = scheduleSystemComponent.getGhostVersion("gh-ost --version");
+    		hostDTO.setGhostVersion(str);
+    		logger.debug("DEBUG: gh-ost --version : "+ str);
+    		
+    		/*
+    		 * gh-ost socket count
+    		 */
+    		cnt = scheduleSystemComponent.getGhostSockCount(tempDirectory, "gh-ost.*.*.sock");
+    		hostDTO.setGhostSockCount(cnt);
+    		logger.debug("DEBUG: gh-ost socket count : "+ cnt);
+    		
+    		/*
+    		 * gh-ost postphone flag file
+    		 */
+    		isFile = ghostPostponeFlag.exists();
+    		hostDTO.setGhostPostponeFile(isFile);
+    		logger.debug("DEBUG: gh-ost postphone flag : "+ isFile);
+    		
+    		/*
+    		 * gh-ost process
+    		 */
+    		isProcess = scheduleSystemComponent.isGhostRunning("ps -ef", "gh-ost");
+    		hostDTO.setGhostRunning(isProcess);
+    		logger.debug("DEBUG: gh-ost process : "+ isProcess);
+    		
+    		
+    		/*
+    		 * gh-ost postphone flag file
+    		 */
+    		isFile = mysqldPid.exists();
+    		hostDTO.setMysqlPid(isFile);
+    		logger.debug("DEBUG: mysqld pid : "+ isFile);
+    		
+    		
+    		/*
+    		 * mysqld process
+    		 */
+    		isProcess = scheduleSystemComponent.isMySQLRunning("ps -ef", "mysqld");
+    		hostDTO.setMysqlRunning(isProcess);
+    		logger.debug("DEBUG: mysql process : "+ isProcess);
+    		
+    		/*
+    		 * mysqld sock
+    		 */
+    		isFile = mysqldSock.exists();
+    		hostDTO.setMysqlPid(isFile);
+    		logger.debug("DEBUG: mysqld sock : "+ isFile);
+    		
     		
     		
     		/*
@@ -153,26 +229,110 @@ public class ScheduleService {
     		 * Set server url to feed up the information
     		 */
     		String apiUrl = "/mysql/savemysql";
-    		// MySQLDTO mysqlDTO = this.getMySQLDTO();
-    		
-    		/*
-    		 * Create HostComponentDTO
-    		 */
-    		// MySQLComponentDTO mysqlComponentDTO = new MySQLComponentDTO();
-    		//MySQLDTO mysqlDTO = new MySQLDTO();
-    		
-    		/*
-    		 * Create mysqlDTO using MysqlComponentDTO
-    		 */
-    		MySQLDTO mysqlDTO = mysqlVariableRepository.getMySQLDTO();
     		
     		
-    		/*
-    		 * Setup MySQLDTO using @Value
-    		 */
+    		MySQLDTO mysqlDTO = new MySQLDTO();
     		mysqlDTO.setId(clientId);
     		mysqlDTO.setReportHostName(clusterName);
     		
+    		
+    		List<String> list = null;
+    		Iterator<String> itr = null;
+    		
+    		List<Integer> listIntg = null;
+    		Iterator<Integer> itrIntg = null;
+    		
+    		
+    		/*
+    		 * set innodb version
+    		 */
+    		list = scheduleRepository.findByVariableByName("innodb_version");
+    		itr = (Iterator<String>)list.iterator();
+    		while(itr.hasNext()) {
+    			String str = (String)itr.next();
+    			logger.debug("DEBUG: innodb_version: "+ str);
+    			mysqlDTO.setInnodbVersion(str);
+    		}
+    		
+    		
+    		/*
+    		 * set mysql version
+    		 */
+    		list = scheduleRepository.findByVariableByName("version");
+    		itr = (Iterator<String>)list.iterator();
+    		while(itr.hasNext()) {
+    			String str = (String)itr.next();
+    			logger.debug("DEBUG: version: "+ str);
+    			mysqlDTO.setMysqlVersion(str);
+    		}
+    		
+    		
+    		/*
+    		 * set master host name
+    		 */
+    		list = scheduleRepository.findMasterHostInSlaveStatus();
+    		itr = (Iterator<String>)list.iterator();
+    		while(itr.hasNext()) {
+    			String str = (String)itr.next();
+    			logger.debug("DEBUG: master host name: "+ str);
+    			mysqlDTO.setMasterHostName(str);
+    		}
+    		
+    		
+    		/*
+    		 * set master count
+    		 */
+    		listIntg = scheduleRepository.findMasterCount();
+    		itrIntg = (Iterator<Integer>)listIntg.iterator();
+    		while(itrIntg.hasNext()) {
+    			Integer intg = (Integer)itrIntg.next();
+    			logger.debug("DEBUG: active master count: "+ intg.toString());
+    			mysqlDTO.setMasterActiveCount(intg.intValue());
+    		}
+    		
+    		/*
+    		 * set slave  count
+    		 */
+    		listIntg = scheduleRepository.findSlaveCount();
+    		itrIntg = (Iterator<Integer>)listIntg.iterator();
+    		while(itrIntg.hasNext()) {
+    			Integer intg = (Integer)itrIntg.next();
+    			logger.debug("DEBUG: salve count: "+ intg.toString());
+    			mysqlDTO.setSlaveCount(intg.intValue());
+    		}
+    		
+    		
+    		/*
+    		 * set report host name
+    		 */
+    		list = scheduleRepository.findByVariableByName("report_host");
+    		itr = (Iterator<String>)list.iterator();
+    		while(itr.hasNext()) {
+    			String str = (String)itr.next();
+    			logger.debug("DEBUG: report host name: "+ str);
+    			mysqlDTO.setReportHostName(str);
+    		}
+    		
+    		
+    		/*
+    		 * set read only
+    		 */
+    		list = scheduleRepository.findByVariableByName("read_only");
+    		itr = (Iterator<String>)list.iterator();
+    		while(itr.hasNext()) {
+    			String str = (String)itr.next();
+    			logger.debug("DEBUG: report host name: "+ str);
+    			
+    			if(str.equals("OFF")) {
+    				mysqlDTO.setReadOnly(false);
+    			}else {
+    				mysqlDTO.setReadOnly(true);
+    			}
+    			
+    		}
+    		
+    	    		
+ 
     		
     		/*
     		 * Gson setup using url and mysqlDTO
