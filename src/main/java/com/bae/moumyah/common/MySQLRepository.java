@@ -33,15 +33,25 @@ public class MySQLRepository {
 		List<MySQLVariableDTO> mysqlVarialbeDTOList = null;
 		Iterator<MySQLVariableDTO> mysqlVarialbeDTOIterator = null;
 		
+		List<MasterCountDTO> masterCountDTOList = null;
+		Iterator<MasterCountDTO> masterCountDTOIterator= null;
+		
+		List<SlaveCountDTO> slaveCountDTOList = null;
+		Iterator<SlaveCountDTO> slaveCountDTOIterator= null;
+		
+		List<SlaveStatusDTO> slaveStatusDTOList = null;
+		Iterator<SlaveStatusDTO> slaveStatusDTOIterator= null;
+		
 		/*
 		 * get version
 		 */
 		
 		mysqlVarialbeDTOList = this.findByVariableName("version");
 		mysqlVarialbeDTOIterator = (Iterator<MySQLVariableDTO>) mysqlVarialbeDTOList.iterator();
+		logger.debug("------------------------ version -------------------");
 		while(mysqlVarialbeDTOIterator.hasNext()) {
 			MySQLVariableDTO mysqlVariableDTO = (MySQLVariableDTO)mysqlVarialbeDTOIterator.next();
-			logger.debug("------------------------ DEBUG -------------------");
+			
 			logger.debug(mysqlVariableDTO.getVariableName());
 			logger.debug(mysqlVariableDTO.getValue());
 			
@@ -54,9 +64,10 @@ public class MySQLRepository {
 		 */
 		mysqlVarialbeDTOList = this.findByVariableName("innodb_version");
 		mysqlVarialbeDTOIterator = (Iterator<MySQLVariableDTO>) mysqlVarialbeDTOList.iterator();
+		logger.debug("------------------------ innodb version -------------------");
 		while(mysqlVarialbeDTOIterator.hasNext()) {
 			MySQLVariableDTO mysqlVariableDTO = (MySQLVariableDTO)mysqlVarialbeDTOIterator.next();
-			logger.debug("------------------------ DEBUG -------------------");
+			
 			logger.debug(mysqlVariableDTO.getVariableName());
 			logger.debug(mysqlVariableDTO.getValue());
 			
@@ -68,9 +79,9 @@ public class MySQLRepository {
 		 */
 		mysqlVarialbeDTOList = this.findByVariableName("read_only");
 		mysqlVarialbeDTOIterator = (Iterator<MySQLVariableDTO>) mysqlVarialbeDTOList.iterator();
+		logger.debug("------------------------ read-only -------------------");
 		while(mysqlVarialbeDTOIterator.hasNext()) {
 			MySQLVariableDTO mysqlVariableDTO = (MySQLVariableDTO)mysqlVarialbeDTOIterator.next();
-			logger.debug("------------------------ DEBUG -------------------");
 			logger.debug(mysqlVariableDTO.getVariableName());
 			logger.debug(mysqlVariableDTO.getValue());
 			
@@ -82,19 +93,71 @@ public class MySQLRepository {
 			
 		}
 		
-		mysqlDTO.setMasterActiveCount(0);
-		mysqlDTO.setSlaveCount(3);
-		mysqlDTO.setMasterHostName("N/A");
+		/*
+		 * get master count
+		 */
+		masterCountDTOList = this.findMasterCount();
+		masterCountDTOIterator = (Iterator<MasterCountDTO>) masterCountDTOList.iterator();
+		logger.debug("------------------------ master count -------------------");
+		while(masterCountDTOIterator.hasNext()) {
+			MasterCountDTO masterCountDTO = (MasterCountDTO)masterCountDTOIterator.next();
+			logger.debug(Integer.toString(masterCountDTO.getMasterCount()));
+			
+			mysqlDTO.setMasterActiveCount(masterCountDTO.getMasterCount());
+			
+		}
 		
-
+		
+		/*
+		 * get slave status
+		 */
+		slaveStatusDTOList = this.findSlaveStatus();
+		slaveStatusDTOIterator = (Iterator<SlaveStatusDTO>) slaveStatusDTOList.iterator();
+		logger.debug("------------------------ slave status -------------------");
+		mysqlDTO.setMasterHostName("N/A");
+		while(slaveStatusDTOIterator.hasNext()) {
+			SlaveStatusDTO slaveStatusDTO = (SlaveStatusDTO)slaveStatusDTOIterator.next();
+			logger.debug(slaveStatusDTO.getSlaveStatus());
+			
+			mysqlDTO.setMasterHostName(slaveStatusDTO.getSlaveStatus());
+		}
+		
 		
 		return mysqlDTO;
 		
 	}
 	
 	
+	public List<SlaveStatusDTO> findSlaveStatus(){
+		
+		List<SlaveStatusDTO> result = jdbcTemplate.query(
+                "show slave status",
+                (rs, rowNum) -> new SlaveStatusDTO(rs.getString(2))
+        );
+
+        return result;
+	}
 	
-	// TO-DO method for count masters
+	public List<SlaveCountDTO> findSlaveCount(){
+		
+		List<SlaveCountDTO> result = jdbcTemplate.query(
+                "select count(*) as slave_count from processlist where COMMAND = 'Binlog Dump'",
+                (rs, rowNum) -> new SlaveCountDTO(rs.getInt("slave_count"))
+        );
+
+        return result;
+	}
+
+	
+	public List<MasterCountDTO> findMasterCount(){
+		
+		List<MasterCountDTO> result = jdbcTemplate.query(
+                "select count(v1.user) as master_count from  (select user as user  from processlist where user = 'system user' group by user) v1",
+                (rs, rowNum) -> new MasterCountDTO(rs.getInt("master_count"))
+        );
+
+        return result;
+	}
 	
 	
 	public List<MySQLVariableDTO> findByVariableName(String variableName){
