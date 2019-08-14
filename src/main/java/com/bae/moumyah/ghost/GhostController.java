@@ -48,16 +48,24 @@ public class GhostController {
 	}
 	
 	
+	
+	
+	
+	
 	@PostMapping("/dryrun")
 	public GhostAlterDTO dryRun(@Valid @RequestBody GhostAlterDTO ghostAlterDTO) {
 	
-		return ghostService.ghostDryRun(ghostAlterDTO);
+		ghostService.ghostDryRun(ghostAlterDTO);
+		
+		return ghostAlterDTO;
 	}
 	
 	@PostMapping("/execute")
 	public GhostAlterDTO execute(@Valid @RequestBody GhostAlterDTO ghostAlterDTO) {
 	
-		return ghostService.ghostExecute(ghostAlterDTO);
+		ghostService.ghostExecute(ghostAlterDTO);
+		
+		return ghostAlterDTO;
 	}
 	
 

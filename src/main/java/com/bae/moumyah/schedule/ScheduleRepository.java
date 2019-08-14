@@ -38,7 +38,7 @@ public class ScheduleRepository {
 	public List<Integer> findSlaveCount(){
 		
 		List<Integer> result = jdbcTemplate.query(
-                "select count(*) as slave_count from processlist where COMMAND = 'Binlog Dump'",
+                "select count(*) as slave_count from processlist where COMMAND = 'Binlog Dump' AND HOST NOT LIKE '127.0.0.1%'",
                 (rs, rowNum) -> new Integer(rs.getInt("slave_count"))
         );
 

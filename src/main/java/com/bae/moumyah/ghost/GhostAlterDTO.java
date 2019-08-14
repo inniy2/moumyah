@@ -10,7 +10,7 @@ public class GhostAlterDTO {
 	
 	private ArrayList<String> checkReplicaList;
 	
-	private String alterStatement;
+	private ArrayList<String> alterStatement;
 
 	public String getDatabaseName() {
 		return databaseName;
@@ -36,11 +36,11 @@ public class GhostAlterDTO {
 		this.checkReplicaList = checkReplicaList;
 	}
 
-	public String getAlterStatement() {
+	public ArrayList<String> getAlterStatement() {
 		return alterStatement;
 	}
 
-	public void setAlterStatement(String alterStatement) {
+	public void setAlterStatement(ArrayList<String> alterStatement) {
 		this.alterStatement = alterStatement;
 	}
 
@@ -49,6 +49,9 @@ public class GhostAlterDTO {
 		return "GhostAlterDTO [databaseName=" + databaseName + ", tableName=" + tableName + ", checkReplicaList="
 				+ checkReplicaList + ", alterStatement=" + alterStatement + "]";
 	}
+
+	
+	
 	
 	
 

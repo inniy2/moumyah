@@ -2,9 +2,11 @@ package com.bae.moumyah.ghost;
 
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +18,11 @@ public class GhostService {
 	private static final Logger logger = LoggerFactory.getLogger(GhostService.class);
     private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
 	
+    
+    @Autowired
+    GhostSystemComponent ghostSystemComponent;
+    
+    
 	@Value("${console.server_url}")
     private String postUrl;
 	
@@ -25,6 +32,30 @@ public class GhostService {
 	@Value("${console.cluster_name}")
     private String clusterName;
 	
+	
+	
+	
+	
+	String[] ghostComandLine = new String[] {
+			"gh-ost",                                    // 0
+			"--max-load=Threads_running=50",             // 1
+			"--critical-load=Threads_running=1500",      // 2
+			"--chunk-size=500",                          // 3
+			"--max-lag-millis=1500",                     // 4
+			"--conf=/etc/mysql/debian.cnf",              // 5
+			"--host=127.0.0.1",                          // 6
+			"--throttle-control-replicas=",              // 7
+			"--database=",                               // 8
+			"--table=",                                  // 9
+			"--alter=",                                  // 10
+			"--switch-to-rbr",                           // 11
+			"--cut-over=default",                        // 12
+			"--exact-rowcount",                          // 13
+			"--concurrent-rowcount",                     // 14
+			"--default-retries=120",                     // 15
+			"--timestamp-old-table",                     // 16
+			""                                           // 17
+	};
 	
 	
 	public ArrayList<String> getGhostValidateByTable(String tableName) {
@@ -92,17 +123,98 @@ public class GhostService {
 	}
 	
 	
-	public GhostAlterDTO ghostDryRun(GhostAlterDTO ghostAlterDTO) {
+	
+	public void ghostDryRun(GhostAlterDTO ghostAlterDTO) {
 		
-		return ghostAlterDTO;
+		boolean isValidationPass = ghostSystemComponent.validateBeforeRun();
+		
+		logger.info("isValidationPass: "+ isValidationPass);
+		
+		if(isValidationPass) this.ghostRun(ghostAlterDTO, "--verbose");
+		
 	}
 	
-	public GhostAlterDTO ghostExecute(GhostAlterDTO ghostAlterDTO) {
+	
+	
+	public void ghostExecute(GhostAlterDTO ghostAlterDTO) {
 		
-		this.ghostDryRun(ghostAlterDTO);
+		boolean isValidationPass = ghostSystemComponent.validateBeforeRun();
 		
-		return ghostAlterDTO;
+		logger.info("isValidationPass: "+ isValidationPass);
+		
+		this.ghostRun(ghostAlterDTO, "--verbose");
+		
+		this.ghostRun(ghostAlterDTO, "--execute");
+		
 	}
+	
+	
+	
+	
+	private void ghostRun(GhostAlterDTO ghostAlterDTO, String verbose) {
+		
+		
+		
+		StringBuilder database      = new StringBuilder("--database=");
+		StringBuilder table         = new StringBuilder("--table=");
+		StringBuilder alterStatment = new StringBuilder("--alter=");
+		StringBuilder checkReplica  = new StringBuilder("--throttle-control-replicas=");
+		
+		
+		logger.debug("cmd option length: "+ghostComandLine.length);
+		
+		/*
+		 * database
+		 */
+		database.append(ghostAlterDTO.getDatabaseName());
+
+		
+		/*
+		 * table
+		 */
+		table.append(ghostAlterDTO.getTableName());
+		
+		/*
+		 * checkReplica
+		 */
+		ArrayList<String> checkReplicaList = ghostAlterDTO.getCheckReplicaList();
+		for(int i = 0; i < checkReplicaList.size(); i++) {			
+			if (i != 0) checkReplica.append(",");
+			checkReplica.append(checkReplicaList.get(i));
+		}
+		
+		
+		/*
+		 * alterStatment
+		 */
+		ArrayList<String> alterStatementList = ghostAlterDTO.getAlterStatement();
+		for(int i = 0; i < alterStatementList.size(); i++) {			
+			if (i != 0) alterStatment.append(",");
+			alterStatment.append(alterStatementList.get(i));
+		}
+		
+		
+		
+		for(int i= 0; i < ghostComandLine.length; i++) {
+			
+			if(i == 8) {        ghostComandLine[i] = database.toString();
+			}else if (i == 9) { ghostComandLine[i] = table.toString();
+			}else if (i == 7) { ghostComandLine[i] = checkReplica.toString();
+			}else if (i == 10){ ghostComandLine[i] = alterStatment.toString();
+			}else if (i == 17){ ghostComandLine[i] = verbose;
+			}
+		
+			logger.info(ghostComandLine[i]);
+		}
+		
+		
+		ghostSystemComponent.runProcess(ghostComandLine);
+		
+	}
+	
+	
+	
+	
 	
 	
 	
