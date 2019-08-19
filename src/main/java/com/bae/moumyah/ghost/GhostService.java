@@ -3,6 +3,7 @@ package com.bae.moumyah.ghost;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,7 +58,7 @@ public class GhostService {
 			""                                           // 17
 	};
 	
-	
+	/*
 	public ArrayList<String> getGhostValidateByTable(String tableName) {
 		
 		ArrayList<String> databases = new ArrayList<String>();
@@ -122,36 +123,58 @@ public class GhostService {
 		return ghostMySQLDTO;
 	}
 	
+	*/
+	
+	public GhostAlterDTO validation(GhostAlterDTO ghostAlterDTO) {
+		
+		int validationCode = ghostSystemComponent.validateBeforeRun();
+		
+		
+		/*
+		 * //code 0: init
+		 * //code 1: postphone file
+		 * //code 2: ghost process
+		 * //code 3: ghost sock files 
+		 * 
+		 * // code 101: OK 
+		 */
+		ghostAlterDTO.setValidationCode(validationCode);
+		
+		
+		if (validationCode == 101) {
+			ghostAlterDTO.setValicationPass(true);
+		}else {
+			ghostAlterDTO.setValicationPass(false);
+		}  
+		
+		return ghostAlterDTO;
+		
+	}
 	
 	
-	public void ghostDryRun(GhostAlterDTO ghostAlterDTO) {
+	public GhostAlterDTO ghostDryRun(GhostAlterDTO ghostAlterDTO) {
 		
-		boolean isValidationPass = ghostSystemComponent.validateBeforeRun();
+		ghostAlterDTO.setOutputStrList(this.ghostRun(ghostAlterDTO, "--verbose"));
 		
-		logger.info("isValidationPass: "+ isValidationPass);
-		
-		if(isValidationPass) this.ghostRun(ghostAlterDTO, "--verbose");
+		return ghostAlterDTO;
 		
 	}
 	
 	
 	
-	public void ghostExecute(GhostAlterDTO ghostAlterDTO) {
+	
+	public GhostAlterDTO ghostExecute(GhostAlterDTO ghostAlterDTO) {
+				
+		ghostAlterDTO.setOutputStrList(this.ghostRun(ghostAlterDTO, "--execute"));
 		
-		boolean isValidationPass = ghostSystemComponent.validateBeforeRun();
-		
-		logger.info("isValidationPass: "+ isValidationPass);
-		
-		this.ghostRun(ghostAlterDTO, "--verbose");
-		
-		this.ghostRun(ghostAlterDTO, "--execute");
+		return ghostAlterDTO;
 		
 	}
 	
 	
 	
 	
-	private void ghostRun(GhostAlterDTO ghostAlterDTO, String verbose) {
+	private List<String> ghostRun(GhostAlterDTO ghostAlterDTO, String verbose) {
 		
 		
 		
@@ -208,7 +231,9 @@ public class GhostService {
 		}
 		
 		
-		ghostSystemComponent.runProcess(ghostComandLine);
+		return ghostSystemComponent.runProcess(ghostComandLine);
+		
+	
 		
 	}
 	

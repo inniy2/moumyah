@@ -57,7 +57,10 @@ public class DropService {
 	}
 	
 	
-	public String createHardLink(DropDTO dropDTO) {
+	public DropDTO createHardLink(DropDTO dropDTO) {
+		
+		int validationCode = 0;
+		String validationMessage = "N/A";
 		
 		/*
 		 * Build file paths
@@ -89,7 +92,11 @@ public class DropService {
 		String tableFileAbsolutePath = tableFile.getAbsolutePath();
 		if(!tableFile.exists()) { 
 			logger.info(tableFileAbsolutePath + " is not exists.");
-			return tableFileAbsolutePath + " is not exists."; 
+			
+			dropDTO.setValidationCode(1);
+			dropDTO.setValidationMessage(tableFileAbsolutePath + " is not exists.");
+			
+			return dropDTO;
 		}
 		
 		/*
@@ -99,7 +106,12 @@ public class DropService {
 		String hardLinkAbsolutePath = hardLink.getAbsolutePath();
 		if(hardLink.exists()) {
 			logger.info(hardLinkAbsolutePath + " already exists.");
-			return hardLinkAbsolutePath + " already exists."; 
+			
+			dropDTO.setValidationCode(2);
+			dropDTO.setValidationMessage(hardLinkAbsolutePath + " already exists.");
+			
+			return dropDTO;
+			
 		} 
 		
 		
@@ -121,10 +133,19 @@ public class DropService {
 		 */
 		if(hardLink.exists()) {
 			logger.info(hardLinkAbsolutePath + " created.");
-			return hardLinkAbsolutePath;
+			
+			dropDTO.setValidationCode(101);
+			dropDTO.setValidationMessage(hardLinkAbsolutePath + " created.");
+			
+			return dropDTO;
+			
 		} else {
 			logger.info("Fail to create a hard link");
-			return "Fail to create a hard link";
+			
+			dropDTO.setValidationCode(9);
+			dropDTO.setValidationMessage("Fail to create a hard link");
+			
+			return dropDTO;
 		}
 		
 		

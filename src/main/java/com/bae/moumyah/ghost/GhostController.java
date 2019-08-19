@@ -22,6 +22,7 @@ public class GhostController {
 	GhostService ghostService;
 	
 	
+	/*
 	@GetMapping("/validate/{tableName}")
 	public ArrayList<String> getGhostValidateByTable(@PathVariable(value = "tableName") String tableName ) {
 		
@@ -47,25 +48,29 @@ public class GhostController {
 		return ghostService.getGhostDTO(ghostQueryDTO);
 	}
 	
+	*/
 	
 	
 	
+	
+	@PostMapping("/validation")
+	public GhostAlterDTO validation(@Valid @RequestBody GhostAlterDTO ghostAlterDTO) {
+	
+		return ghostService.validation(ghostAlterDTO);
+	}
 	
 	
 	@PostMapping("/dryrun")
 	public GhostAlterDTO dryRun(@Valid @RequestBody GhostAlterDTO ghostAlterDTO) {
 	
-		ghostService.ghostDryRun(ghostAlterDTO);
-		
-		return ghostAlterDTO;
+		return ghostService.ghostDryRun(ghostAlterDTO);
 	}
 	
 	@PostMapping("/execute")
 	public GhostAlterDTO execute(@Valid @RequestBody GhostAlterDTO ghostAlterDTO) {
 	
-		ghostService.ghostExecute(ghostAlterDTO);
+		return ghostService.ghostExecute(ghostAlterDTO);
 		
-		return ghostAlterDTO;
 	}
 	
 

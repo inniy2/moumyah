@@ -29,7 +29,7 @@ public class DropController {
 	
 	
 	@GetMapping("/createHardLink")
-	public String createHardLink(@RequestParam("database_name")String databaseName, @RequestParam("table_name")String tableName) {
+	public DropDTO createHardLink(@RequestParam("database_name")String databaseName, @RequestParam("table_name")String tableName) {
 		
 		DropDTO dropDTO = new DropDTO();
 		dropDTO.setDatabaseName(databaseName);;
@@ -39,7 +39,7 @@ public class DropController {
 	}
 
 	@PostMapping("/createHardLink")
-	public String createHardLink(@Valid @RequestBody DropDTO dropDTO) {
+	public DropDTO createHardLink(@Valid @RequestBody DropDTO dropDTO) {
 		return dropService.createHardLink(dropDTO);
 	}
 

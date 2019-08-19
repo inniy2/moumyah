@@ -1,6 +1,7 @@
 package com.bae.moumyah.ghost;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class GhostAlterDTO {
 	
@@ -11,7 +12,14 @@ public class GhostAlterDTO {
 	private ArrayList<String> checkReplicaList;
 	
 	private ArrayList<String> alterStatement;
+	
+	private int validationCode;
+	
+	private boolean isValicationPass;
+	
+	private List<String> outputStrList;
 
+	
 	public String getDatabaseName() {
 		return databaseName;
 	}
@@ -44,15 +52,43 @@ public class GhostAlterDTO {
 		this.alterStatement = alterStatement;
 	}
 
+	
+
+	public int getValidationCode() {
+		return validationCode;
+	}
+
+	public void setValidationCode(int validationCode) {
+		this.validationCode = validationCode;
+	}
+
+	public boolean isValicationPass() {
+		return isValicationPass;
+	}
+
+	public void setValicationPass(boolean isValicationPass) {
+		this.isValicationPass = isValicationPass;
+	}
+	
+	
+
+	public List<String> getOutputStrList() {
+		return outputStrList;
+	}
+
+	public void setOutputStrList(List<String> outputStrList) {
+		this.outputStrList = outputStrList;
+	}
+
 	@Override
 	public String toString() {
 		return "GhostAlterDTO [databaseName=" + databaseName + ", tableName=" + tableName + ", checkReplicaList="
-				+ checkReplicaList + ", alterStatement=" + alterStatement + "]";
+				+ checkReplicaList + ", alterStatement=" + alterStatement + ", validationCode=" + validationCode
+				+ ", isValicationPass=" + isValicationPass + ", outputStrList=" + outputStrList + "]";
 	}
 
 	
-	
-	
-	
 
+	
+	
 }

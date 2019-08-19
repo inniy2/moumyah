@@ -32,7 +32,7 @@ public class GhostSystemComponent {
 	private String tmpDirectory = "/tmp";
 	
 	
-	public boolean validateBeforeRun() {
+	public int validateBeforeRun() {
 		
 
 		int val = 0;
@@ -40,25 +40,24 @@ public class GhostSystemComponent {
 		int validationCode = 0;
 		
 		switch(val){
-			case 0://postphone file
-				validationCode++;
+			case 0:
+				validationCode++;   //code 1: postphone file
 				File ghostPostponeFlag = new File(this.ghostPostponeFlag);
 				if(ghostPostponeFlag.exists()) break;
-			case 1://ghost process
-				validationCode++;
+			case 1:
+				validationCode++;   //code 2: ghost process
 				if(isGhostRunning("ps -ef", "gh-ost")) break;
-			case 2://ghost sock files
-				validationCode++;
+			case 2:
+				validationCode++;   //code 3: ghost sock files 
 				File tempDirectory     = new File(this.tmpDirectory);
 				if(getGhostSockCount(tempDirectory, "gh-ost.*.sock") > 0) break;
 			default: 
-				validationCode++;
-				return true;
+				validationCode = 101;   //code 101: OK
 		}
 		
 		logger.info("validationCode: "+ validationCode);
 		
-		return false;
+		return validationCode;
 	}
 	
 	
@@ -72,8 +71,9 @@ public class GhostSystemComponent {
 		
 	
 	
-	public void runProcess(String[] cmd) {
+	public List<String> runProcess(String[] cmd) {
 		
+		List<String> outputStrList = new ArrayList<String>();
 		
 		ProcessBuilder processBuilder = new ProcessBuilder();
 			
@@ -90,22 +90,25 @@ public class GhostSystemComponent {
 			String line = null;
 			logger.info("------------------------------------------- inputstream");
 			while ((line = reader.readLine()) != null) {
-				
 				logger.info(line);
+				outputStrList.add(line);
 			}
 			
 			BufferedReader error = new BufferedReader(new InputStreamReader(process.getErrorStream()));
 			String errorLine = null;
 			logger.info("------------------------------------------- errorstream");
 			while ((errorLine = error.readLine()) != null) {
-				
 				logger.info(errorLine);
+				outputStrList.add(errorLine);
 			}
 			
 			
 		}catch (IOException e) {
 			e.printStackTrace();
+		}finally {
+			return outputStrList;
 		}
+		
 		
 	}
 	
