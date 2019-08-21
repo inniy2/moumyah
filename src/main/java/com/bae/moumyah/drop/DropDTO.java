@@ -10,7 +10,11 @@ public class DropDTO {
 	
 	
 	private int validationCode;
-	private String validationMessage; 
+	private String validationMessage;
+	
+	private int truncateInterval = 10;
+	private long truncateSize = 314572800;
+	
 	
 	public DropDTO() {
 		super();
@@ -106,16 +110,42 @@ public class DropDTO {
 	}
 
 
+	
+
+	public int getTruncateInterval() {
+		return truncateInterval;
+	}
+
+
+
+	public void setTruncateInterval(int truncateInterval) {
+		this.truncateInterval = truncateInterval;
+	}
+
+
+
+	public long getTruncateSize() {
+		return truncateSize;
+	}
+
+
+
+	public void setTruncateSize(long truncateSize) {
+		this.truncateSize = truncateSize;
+	}
+
+
 
 	@Override
 	public String toString() {
 		return "DropDTO [mysqlDataDirectory=" + mysqlDataDirectory + ", databaseName=" + databaseName + ", tableName="
 				+ tableName + ", dataLength=" + dataLength + ", validationCode=" + validationCode
-				+ ", validationMessage=" + validationMessage + "]";
+				+ ", validationMessage=" + validationMessage + ", truncateInterval=" + truncateInterval
+				+ ", truncateSize=" + truncateSize + "]";
 	}
 
 
-
+	
 	
 	
 	

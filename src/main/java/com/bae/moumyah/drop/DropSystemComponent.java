@@ -1,6 +1,7 @@
 package com.bae.moumyah.drop;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.time.format.DateTimeFormatter;
@@ -18,8 +19,17 @@ public class DropSystemComponent {
 	private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
 	
 	
+	public void truncateFile(String[] cmd) {
+		this.runProcess(cmd);
+	}
 	
-	public void runProcess(String[] cmd) {
+	
+	public void createHardLink(String[] cmd) {
+		this.runProcess(cmd);
+	}
+	
+	
+	private void runProcess(String[] cmd) {
 		
 		ProcessBuilder processBuilder = new ProcessBuilder();
 		processBuilder.command(cmd);
@@ -47,5 +57,7 @@ public class DropSystemComponent {
 		}
 		
 	}
+	
+	
 	
 }

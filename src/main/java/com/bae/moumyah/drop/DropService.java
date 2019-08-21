@@ -3,6 +3,7 @@ package com.bae.moumyah.drop;
 import java.io.File;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -122,7 +123,7 @@ public class DropService {
 		 * Creating hard link
 		 */
 		String[] cmd = new String[] {"ln",targetFileFullPathStr,hardLinkFullPathStr};
-		dropSystemComponent.runProcess(cmd);
+		dropSystemComponent.createHardLink(cmd);
 		
 		
 		logger.debug("hardLinkAbsolutePath : " + hardLinkAbsolutePath);
@@ -154,21 +155,191 @@ public class DropService {
 	
 	
 	
-	public String dropTable(DropDTO dropDTO) {
+	public DropDTO dropTable(DropDTO dropDTO) {
+		
+		List<String[]> resultSet = null;
+		
+		StringBuilder readOnly = new StringBuilder();
+		
+		/*
+		 * Build file paths
+		 */
+		StringBuilder targetFileFullPath = new StringBuilder();
+		StringBuilder hardLinkFullPath = new StringBuilder();
+		
+		targetFileFullPath.append(dropDTO.getMysqlDataDirectory());
+		targetFileFullPath.append("/");
+		targetFileFullPath.append(dropDTO.getDatabaseName());
+		targetFileFullPath.append("/");
+		targetFileFullPath.append(dropDTO.getTableName());
+		targetFileFullPath.append(".ibd");
+		
+		hardLinkFullPath.append(dropDTO.getMysqlDataDirectory());
+		hardLinkFullPath.append("/");
+		hardLinkFullPath.append(dropDTO.getDatabaseName());
+		hardLinkFullPath.append("/");
+		hardLinkFullPath.append(dropDTO.getTableName());
+		hardLinkFullPath.append(".ibd.rm");
+		
+		String targetFileFullPathStr = targetFileFullPath.toString();
+		String hardLinkFullPathStr = hardLinkFullPath.toString();
+		
 		
 		// Check read-only
 		
-		// Check hard link
+		resultSet = dropRepository.findByVariablesByName("read_only");
+		
+		resultSet.forEach( e -> readOnly.append(e[1]) );
+		
+		if(!readOnly.toString().equals("OFF")) {
+			logger.debug("variables read_only: "+readOnly.toString());
+			dropDTO.setValidationCode(11);
+			dropDTO.setValidationMessage("The host set to read_only: Drop table abort");
+			return dropDTO;
+		}
+		
+		logger.debug("variables read_only: "+readOnly.toString());
+		
+		
+		// information schema and database name and table name
+		
+		resultSet = dropRepository.findDropTargetTableByName(dropDTO.getDatabaseName(), dropDTO.getTableName());
+		
+		if(resultSet.size() == 0 || resultSet.size() > 2) {
+			
+			logger.debug("findDropTargetTableByName size: "+resultSet.size());
+			dropDTO.setValidationCode(12);
+			dropDTO.setValidationMessage("findDropTargetTableByName size: " + resultSet.size() + ". Drop table abort");
+			return dropDTO;
+		}
+		
+
+		/*
+		 * Validation for hard link file
+		 */
+		File hardLink = new File(hardLinkFullPathStr);
+		String hardLinkAbsolutePath = hardLink.getAbsolutePath();
+		if(!hardLink.exists()) {
+			logger.info(hardLinkAbsolutePath + " is not exists. Drop abort");
+			
+			dropDTO.setValidationCode(2);
+			dropDTO.setValidationMessage(hardLinkAbsolutePath + " is not exists. Drop abort");
+			
+			return dropDTO;
+			
+		} 
 		
 		// drop table
 		
-		return "Table dropped";
+		try {
+			
+			dropRepository.dropTable(dropDTO.getDatabaseName(), dropDTO.getTableName());
+			dropDTO.setValidationCode(101);
+			dropDTO.setValidationMessage("Table dropped");
+			
+		}catch( Exception e) {
+			dropDTO.setValidationCode(18);
+			dropDTO.setValidationMessage(e.getMessage());
+		}finally {
+			return dropDTO;
+		}
+		
+		
 	}
 	
 	
 	
-	public void truncateHardLink() {
-		// TO-BO
+	public DropDTO truncateHardLink(DropDTO dropDTO) {
+		
+		/*
+		 * Build file paths
+		 */
+		StringBuilder targetFileFullPath = new StringBuilder();
+		StringBuilder hardLinkFullPath = new StringBuilder();
+		
+		targetFileFullPath.append(dropDTO.getMysqlDataDirectory());
+		targetFileFullPath.append("/");
+		targetFileFullPath.append(dropDTO.getDatabaseName());
+		targetFileFullPath.append("/");
+		targetFileFullPath.append(dropDTO.getTableName());
+		targetFileFullPath.append(".ibd");
+		
+		hardLinkFullPath.append(dropDTO.getMysqlDataDirectory());
+		hardLinkFullPath.append("/");
+		hardLinkFullPath.append(dropDTO.getDatabaseName());
+		hardLinkFullPath.append("/");
+		hardLinkFullPath.append(dropDTO.getTableName());
+		hardLinkFullPath.append(".ibd.rm");
+		
+		String targetFileFullPathStr = targetFileFullPath.toString();
+		String hardLinkFullPathStr = hardLinkFullPath.toString();
+		
+		
+		/*
+		 * Validation for target table file
+		 */
+		File tableFile = new File(targetFileFullPathStr);
+		String tableFileAbsolutePath = tableFile.getAbsolutePath();
+		if(tableFile.exists()) { 
+			logger.info(tableFileAbsolutePath + " is exists. Truncate abort");
+			
+			dropDTO.setValidationCode(1);
+			dropDTO.setValidationMessage(tableFileAbsolutePath + " is exists. Truncate abort.");
+			
+			return dropDTO;
+		}
+		
+		/*
+		 * Validation for hard link file
+		 */
+		File hardLink = new File(hardLinkFullPathStr);
+		String hardLinkAbsolutePath = hardLink.getAbsolutePath();
+		if(!hardLink.exists()) {
+			logger.info(hardLinkAbsolutePath + " is not exists. Truncate abort");
+			
+			dropDTO.setValidationCode(2);
+			dropDTO.setValidationMessage(hardLinkAbsolutePath + " is not exists. Truncate abort");
+			
+			return dropDTO;
+			
+		} 
+		
+		logger.debug("targetFileFullPathStr : " + targetFileFullPathStr);
+		logger.debug("hardLinkFullPathStr : " + hardLinkFullPathStr);
+		
+		String[] cmdTruncate = new String[] {"truncate","-s","10485760",hardLinkFullPathStr};
+		
+		String[] cmdRemove = new String[] {"rm","-rf",hardLinkFullPathStr};
+		
+		Long hardLinkFileSize = hardLink.length();
+		
+		logger.debug("hardLinkTotalSpace : " + hardLinkFileSize);
+		
+		while(true) {
+			
+			try {
+				Thread.sleep(1000 * dropDTO.getTruncateInterval());
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			if(hardLinkFileSize <= (dropDTO.getTruncateSize() + 314572800)) {
+				logger.debug("Remove : " + hardLinkFullPathStr);
+				dropSystemComponent.truncateFile(cmdRemove);
+				dropDTO.setValidationCode(101);
+				dropDTO.setValidationMessage("Hard link removed.");
+				break;
+			}
+			
+			logger.debug("truncate : " + hardLinkFullPathStr);
+			dropSystemComponent.truncateFile(cmdTruncate);
+			dropDTO.setValidationCode(29);
+			dropDTO.setValidationMessage("Hard link truncated.");
+		}
+		
+		
+		return dropDTO;
 	}
-
+	
 }

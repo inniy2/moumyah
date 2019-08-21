@@ -45,7 +45,7 @@ public class DropController {
 
 	
 	@GetMapping("/dropTable")
-	public String dropTable(@RequestParam("database_name")String databaseName, @RequestParam("table_name")String tableName) {
+	public DropDTO dropTable(@RequestParam("database_name")String databaseName, @RequestParam("table_name")String tableName) {
 		
 		DropDTO dropDTO = new DropDTO();
 		dropDTO.setDatabaseName(databaseName);;
@@ -55,8 +55,13 @@ public class DropController {
 	}
 
 	@PostMapping("/dropTable")
-	public String dropTable(@Valid @RequestBody DropDTO dropDTO) {
+	public DropDTO dropTable(@Valid @RequestBody DropDTO dropDTO) {
 		return dropService.dropTable(dropDTO);
+	}
+	
+	@PostMapping("/truncateHardLink")
+	public DropDTO truncateHardLink(@Valid @RequestBody DropDTO dropDTO) {
+		return dropService.truncateHardLink(dropDTO);
 	}
 	
 	
