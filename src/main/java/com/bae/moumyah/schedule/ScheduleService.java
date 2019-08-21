@@ -321,7 +321,7 @@ public class ScheduleService {
     		itr = (Iterator<String>)list.iterator();
     		while(itr.hasNext()) {
     			String str = (String)itr.next();
-    			logger.debug("DEBUG: report host name: "+ str);
+    			logger.debug("DEBUG: read_only: "+ str);
     			
     			if(str.equals("OFF")) {
     				mysqlDTO.setReadOnly(false);
