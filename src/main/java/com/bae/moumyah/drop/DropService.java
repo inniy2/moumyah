@@ -195,6 +195,7 @@ public class DropService {
 			logger.debug("variables read_only: "+readOnly.toString());
 			dropDTO.setValidationCode(11);
 			dropDTO.setValidationMessage("The host set to read_only: Drop table abort");
+			logger.info("The host set to read_only: Drop table abort");
 			return dropDTO;
 		}
 		
@@ -209,7 +210,8 @@ public class DropService {
 			
 			logger.debug("findDropTargetTableByName size: "+resultSet.size());
 			dropDTO.setValidationCode(12);
-			dropDTO.setValidationMessage("findDropTargetTableByName size: " + resultSet.size() + ". Drop table abort");
+			dropDTO.setValidationMessage("Query to search drop target table size is " + resultSet.size() + ". Target table not found. Drop table abort");
+			logger.info("Query to search drop target table size is " + resultSet.size() + ". Target table not found. Drop table abort");
 			return dropDTO;
 		}
 		
@@ -220,11 +222,9 @@ public class DropService {
 		File hardLink = new File(hardLinkFullPathStr);
 		String hardLinkAbsolutePath = hardLink.getAbsolutePath();
 		if(!hardLink.exists()) {
-			logger.info(hardLinkAbsolutePath + " is not exists. Drop abort");
-			
 			dropDTO.setValidationCode(2);
 			dropDTO.setValidationMessage(hardLinkAbsolutePath + " is not exists. Drop abort");
-			
+			logger.info(hardLinkAbsolutePath + " is not exists. Drop abort");
 			return dropDTO;
 			
 		} 
@@ -236,7 +236,7 @@ public class DropService {
 			dropRepository.dropTable(dropDTO.getDatabaseName(), dropDTO.getTableName());
 			dropDTO.setValidationCode(101);
 			dropDTO.setValidationMessage("Table dropped");
-			
+			logger.info("Table dropped: "+ targetFileFullPathStr);
 		}catch( Exception e) {
 			dropDTO.setValidationCode(18);
 			dropDTO.setValidationMessage(e.getMessage());
@@ -304,18 +304,48 @@ public class DropService {
 			
 		} 
 		
-		logger.debug("targetFileFullPathStr : " + targetFileFullPathStr);
-		logger.debug("hardLinkFullPathStr : " + hardLinkFullPathStr);
 		
-		String[] cmdTruncate = new String[] {"truncate","-s","10485760",hardLinkFullPathStr};
+		logger.info("Hard link full path   : " + hardLinkFullPathStr);
+		
+		String reduceBy = "-"+dropDTO.getTruncateSize();
+		
+		String[] cmdTruncate = new String[] {"truncate","-s",reduceBy,hardLinkFullPathStr};
 		
 		String[] cmdRemove = new String[] {"rm","-rf",hardLinkFullPathStr};
 		
-		Long hardLinkFileSize = hardLink.length();
+		Long hardLinkFileSize = 0L;
 		
-		logger.debug("hardLinkTotalSpace : " + hardLinkFileSize);
+		
+		int truncateLoopCount = 0;
 		
 		while(true) {
+			
+			Long truncateBaseSize = dropDTO.getTruncateSize() + 314572800;
+			hardLinkFileSize = hardLink.length();
+			
+			logger.info("truncate loop count : " + ++truncateLoopCount);
+			logger.info("truncate base size : " + truncateBaseSize);
+			logger.info("hard link length   : " + hardLinkFileSize);
+			
+			
+			
+			if(hardLinkFileSize <= truncateBaseSize ) {
+				logger.info("Remove : " + hardLinkFullPathStr);
+				// Remove hard link
+				dropSystemComponent.truncateFile(cmdRemove);
+				dropDTO.setValidationCode(101);
+				dropDTO.setValidationMessage("Hard link removed.");
+				dropDTO.setTruncateLoopCount(truncateLoopCount);
+				break;
+			}
+			
+			
+			// truncate hard link
+			dropSystemComponent.truncateFile(cmdTruncate);
+			dropDTO.setValidationCode(29);
+			dropDTO.setValidationMessage("Hard link truncated.");
+			dropDTO.setTruncateLoopCount(1);
+			logger.info("truncated : " + hardLinkFullPathStr);
 			
 			try {
 				Thread.sleep(1000 * dropDTO.getTruncateInterval());
@@ -323,19 +353,6 @@ public class DropService {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			
-			if(hardLinkFileSize <= (dropDTO.getTruncateSize() + 314572800)) {
-				logger.debug("Remove : " + hardLinkFullPathStr);
-				dropSystemComponent.truncateFile(cmdRemove);
-				dropDTO.setValidationCode(101);
-				dropDTO.setValidationMessage("Hard link removed.");
-				break;
-			}
-			
-			logger.debug("truncate : " + hardLinkFullPathStr);
-			dropSystemComponent.truncateFile(cmdTruncate);
-			dropDTO.setValidationCode(29);
-			dropDTO.setValidationMessage("Hard link truncated.");
 		}
 		
 		

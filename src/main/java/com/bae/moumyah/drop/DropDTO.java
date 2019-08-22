@@ -14,6 +14,7 @@ public class DropDTO {
 	
 	private int truncateInterval = 10;
 	private long truncateSize = 314572800;
+	private int truncateLoopCount;
 	
 	
 	public DropDTO() {
@@ -134,6 +135,18 @@ public class DropDTO {
 		this.truncateSize = truncateSize;
 	}
 
+	
+
+	public int getTruncateLoopCount() {
+		return truncateLoopCount;
+	}
+
+
+
+	public void setTruncateLoopCount(int truncateLoopCount) {
+		this.truncateLoopCount = truncateLoopCount;
+	}
+
 
 
 	@Override
@@ -141,12 +154,10 @@ public class DropDTO {
 		return "DropDTO [mysqlDataDirectory=" + mysqlDataDirectory + ", databaseName=" + databaseName + ", tableName="
 				+ tableName + ", dataLength=" + dataLength + ", validationCode=" + validationCode
 				+ ", validationMessage=" + validationMessage + ", truncateInterval=" + truncateInterval
-				+ ", truncateSize=" + truncateSize + "]";
+				+ ", truncateSize=" + truncateSize + ", truncateLoopCount=" + truncateLoopCount + "]";
 	}
 
 
-	
-	
-	
+
 	
 }
