@@ -1,16 +1,14 @@
 package com.bae.moumyah.ghost;
 
-import java.util.ArrayList;
 
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
+
+
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -22,6 +20,7 @@ public class GhostController {
 	GhostService ghostService;
 	
 	
+	/*
 	@GetMapping("/validate/{tableName}")
 	public ArrayList<String> getGhostValidateByTable(@PathVariable(value = "tableName") String tableName ) {
 		
@@ -47,6 +46,17 @@ public class GhostController {
 		return ghostService.getGhostDTO(ghostQueryDTO);
 	}
 	
+	*/
+	
+	
+	
+	
+	@PostMapping("/validation")
+	public GhostAlterDTO validation(@Valid @RequestBody GhostAlterDTO ghostAlterDTO) {
+	
+		return ghostService.validation(ghostAlterDTO);
+	}
+	
 	
 	@PostMapping("/dryrun")
 	public GhostAlterDTO dryRun(@Valid @RequestBody GhostAlterDTO ghostAlterDTO) {
@@ -58,6 +68,7 @@ public class GhostController {
 	public GhostAlterDTO execute(@Valid @RequestBody GhostAlterDTO ghostAlterDTO) {
 	
 		return ghostService.ghostExecute(ghostAlterDTO);
+		
 	}
 	
 
