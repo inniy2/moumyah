@@ -15,6 +15,8 @@ public class GhostAlterDTO {
 	
 	private int validationCode;
 	
+	private String validationMessage;
+	
 	private boolean isValicationPass;
 	
 	private List<String> outputStrList;
@@ -62,6 +64,16 @@ public class GhostAlterDTO {
 		this.validationCode = validationCode;
 	}
 
+	
+	
+	public String getValidationMessage() {
+		return validationMessage;
+	}
+
+	public void setValidationMessage(String validationMessage) {
+		this.validationMessage = validationMessage;
+	}
+
 	public boolean isValicationPass() {
 		return isValicationPass;
 	}
@@ -84,11 +96,11 @@ public class GhostAlterDTO {
 	public String toString() {
 		return "GhostAlterDTO [databaseName=" + databaseName + ", tableName=" + tableName + ", checkReplicaList="
 				+ checkReplicaList + ", alterStatement=" + alterStatement + ", validationCode=" + validationCode
-				+ ", isValicationPass=" + isValicationPass + ", outputStrList=" + outputStrList + "]";
+				+ ", validationMessage=" + validationMessage + ", isValicationPass=" + isValicationPass
+				+ ", outputStrList=" + outputStrList + "]";
 	}
 
 	
-
 	
 	
 }

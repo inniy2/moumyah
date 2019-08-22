@@ -155,6 +155,20 @@ public class GhostService {
 		
 		ghostAlterDTO.setOutputStrList(this.ghostRun(ghostAlterDTO, "--verbose"));
 		
+		boolean isFatal = ghostAlterDTO.getOutputStrList().stream().anyMatch( e -> e.contains("FATAL"));
+		
+		logger.debug("Ghost dryrun FATAL : "+isFatal);
+		
+		if(isFatal) {
+			ghostAlterDTO.setValidationCode(202);
+			ghostAlterDTO.setValidationMessage("Dry run Fatal found.");
+			ghostAlterDTO.setValicationPass(false);
+		}else {
+			ghostAlterDTO.setValidationCode(101);
+			ghostAlterDTO.setValidationMessage("Dry run successful.");
+			ghostAlterDTO.setValicationPass(true);
+		}
+		
 		return ghostAlterDTO;
 		
 	}
@@ -165,6 +179,20 @@ public class GhostService {
 	public GhostAlterDTO ghostExecute(GhostAlterDTO ghostAlterDTO) {
 				
 		ghostAlterDTO.setOutputStrList(this.ghostRun(ghostAlterDTO, "--execute"));
+		
+		boolean isFatal = ghostAlterDTO.getOutputStrList().stream().anyMatch( e -> e.contains("FATAL"));
+		
+		logger.debug("Ghost execute FATAL : "+isFatal);
+		
+		if(isFatal) {
+			ghostAlterDTO.setValidationCode(202);
+			ghostAlterDTO.setValidationMessage("Execution Fatal found.");
+			ghostAlterDTO.setValicationPass(false);
+		}else {
+			ghostAlterDTO.setValidationCode(101);
+			ghostAlterDTO.setValidationMessage("Execution successful.");
+			ghostAlterDTO.setValicationPass(true);
+		}
 		
 		return ghostAlterDTO;
 		
