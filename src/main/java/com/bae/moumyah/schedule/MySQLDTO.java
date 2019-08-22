@@ -16,6 +16,8 @@ public class MySQLDTO {
 	
 	private int slaveCount;
 	
+	private String slaveHostName;
+	
 	private String masterHostName;
 
 	public long getId() {
@@ -74,6 +76,16 @@ public class MySQLDTO {
 		this.slaveCount = slaveCount;
 	}
 
+	
+	
+	public String getSlaveHostName() {
+		return slaveHostName;
+	}
+
+	public void setSlaveHostName(String slaveHostName) {
+		this.slaveHostName = slaveHostName;
+	}
+
 	public String getMasterHostName() {
 		return masterHostName;
 	}
@@ -86,9 +98,10 @@ public class MySQLDTO {
 	public String toString() {
 		return "MySQLDTO [id=" + id + ", reportHostName=" + reportHostName + ", mysqlVersion=" + mysqlVersion
 				+ ", innodbVersion=" + innodbVersion + ", readOnly=" + readOnly + ", masterActiveCount="
-				+ masterActiveCount + ", slaveCount=" + slaveCount + ", masterHostName=" + masterHostName + "]";
+				+ masterActiveCount + ", slaveCount=" + slaveCount + ", slaveHostName=" + slaveHostName
+				+ ", masterHostName=" + masterHostName + "]";
 	}
-	
+
 	
 	
 	

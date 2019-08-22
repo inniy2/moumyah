@@ -11,7 +11,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 
-
 @Repository
 public class ScheduleRepository {
 	
@@ -26,20 +25,91 @@ public class ScheduleRepository {
 	
 	
 	public List<String> findMasterHostInSlaveStatus(){
+	
+		String sql = "show slave status";
 		
-		List<String> result = jdbcTemplate.query(
-                "show slave status",
+		List<String> result = jdbcTemplate.query(sql,
                 (rs, rowNum) -> new String(rs.getString(2))
         );
 
         return result;
 	}
 	
+	
+	public List<String> findSlaveIORuningInSlaveStatus(){
+		
+		String sql = "show slave status";
+		
+		List<String> result = jdbcTemplate.query(sql,
+                (rs, rowNum) -> new String(rs.getString(11))
+        );
+
+        return result;
+	}
+	
+	public List<String> findSlaveSQLRuningInSlaveStatus(){
+		
+		String sql = "show slave status";
+		
+		List<String> result = jdbcTemplate.query(sql,
+                (rs, rowNum) -> new String(rs.getString(12))
+        );
+
+        return result;
+	}
+	
+	
+	public List<String> findLastErrnoInSlaveStatus(){
+		
+		String sql = "show slave status";
+		
+		List<String> result = jdbcTemplate.query(sql,
+                (rs, rowNum) -> new String(rs.getString(19))
+        );
+
+        return result;
+	}
+	
+	public List<String> findLastErrorInSlaveStatus(){
+		
+		String sql = "show slave status";
+		
+		List<String> result = jdbcTemplate.query(sql,
+                (rs, rowNum) -> new String(rs.getString(20))
+        );
+
+        return result;
+	}
+	
+	public List<String> findSecondBehindMasterInSlaveStatus() throws Exception{
+		
+		String sql = "show slave status";
+		
+		List<String> result = jdbcTemplate.query(sql,
+                (rs, rowNum) -> new String(rs.getString(33))
+        );
+
+        return result;
+	}
+	
+	
 	public List<Integer> findSlaveCount(){
 		
-		List<Integer> result = jdbcTemplate.query(
-                "select count(*) as slave_count from processlist where COMMAND = 'Binlog Dump' AND HOST NOT LIKE '127.0.0.1%'",
+		String sql = "select count(host) as slave_count from information_schema.processlist where 1=1 AND (COMMAND = 'Binlog Dump' OR COMMAND = 'Binlog Dump GTID') AND HOST NOT LIKE '127.0.0.1%' AND HOST NOT LIKE 'localhost%'";
+		
+		List<Integer> result = jdbcTemplate.query(sql,
                 (rs, rowNum) -> new Integer(rs.getInt("slave_count"))
+        );
+
+        return result;
+	}
+	
+	public List<String> findSlaveHostName(){
+		
+		String sql = "select host from information_schema.processlist where 1=1 AND (COMMAND = 'Binlog Dump' OR COMMAND = 'Binlog Dump GTID') AND HOST NOT LIKE '127.0.0.1%' AND HOST NOT LIKE 'localhost%'";
+		
+		List<String> result = jdbcTemplate.query(sql,
+                (rs, rowNum) -> new String(rs.getString(1))
         );
 
         return result;

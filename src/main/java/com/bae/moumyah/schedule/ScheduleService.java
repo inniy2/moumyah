@@ -297,8 +297,81 @@ public class ScheduleService {
     		itrIntg = (Iterator<Integer>)listIntg.iterator();
     		while(itrIntg.hasNext()) {
     			Integer intg = (Integer)itrIntg.next();
-    			logger.debug("DEBUG: salve count: "+ intg.toString());
+    			logger.debug("DEBUG: slave count: "+ intg.toString());
     			mysqlDTO.setSlaveCount(intg.intValue());
+    		}
+    		
+    		/*
+    		 * set slave host name
+    		 */
+    		list = scheduleRepository.findSlaveHostName();
+    		itr = (Iterator<String>)list.iterator();
+    		StringBuilder slaveHostNames = new StringBuilder();
+    		int cnt= 0;
+    		while(itr.hasNext()) {
+    			if(cnt != 0)slaveHostNames.append(",");
+    			String str = (String)itr.next();
+    			String[] arrOfStr = str.split(":", 2);
+    			logger.debug("DEBUG: slave host name: "+ arrOfStr[0].toString());
+    			slaveHostNames.append(arrOfStr[0].toString());
+    			cnt++;
+    		}
+    		mysqlDTO.setSlaveHostName(slaveHostNames.toString());
+    		logger.debug("DEBUG: slave host names: "+ slaveHostNames.toString());
+    		
+    		
+    		/*
+    		 * set slave IO running
+    		 */
+    		list = scheduleRepository.findSlaveIORuningInSlaveStatus();
+    		itr = (Iterator<String>)list.iterator();
+    		while(itr.hasNext()) {
+    			String str = (String)itr.next();
+    			logger.debug("DEBUG: slave IO running: "+ str.toString());
+    		}
+    		
+    		/*
+    		 * set slave SQL running
+    		 */
+    		list = scheduleRepository.findSlaveSQLRuningInSlaveStatus();
+    		itr = (Iterator<String>)list.iterator();
+    		while(itr.hasNext()) {
+    			String str = (String)itr.next();
+    			logger.debug("DEBUG: slave SQL running: "+ str.toString());
+    		}
+    		
+    		/*
+    		 * set slave last error number
+    		 */
+    		list = scheduleRepository.findLastErrnoInSlaveStatus();
+    		itr = (Iterator<String>)list.iterator();
+    		while(itr.hasNext()) {
+    			String str = (String)itr.next();
+    			logger.debug("DEBUG: slave last error number : "+ str.toString());
+    		}
+    		
+    		/*
+    		 * set slave last error number
+    		 */
+    		list = scheduleRepository.findLastErrorInSlaveStatus();
+    		itr = (Iterator<String>)list.iterator();
+    		while(itr.hasNext()) {
+    			String str = (String)itr.next();
+    			logger.debug("DEBUG: slave last error message: "+ str.toString());
+    		}
+    		
+    		/*
+    		 * set second behind master
+    		 */
+    		try {
+    			list = scheduleRepository.findSecondBehindMasterInSlaveStatus();
+        		itr = (Iterator<String>)list.iterator();
+        		while(itr.hasNext()) {
+        			String str = (String)itr.next();
+        			logger.debug("DEBUG: slave second behind master: "+ str.toString());
+        		}
+    		}catch(Exception e) {
+    			logger.debug("DEBUG: slave second behind master is NULL");
     		}
     		
     		
