@@ -7,6 +7,8 @@ public class HostDTO {
 
 	private String clusterName;
 	
+	private String HostName;
+	
 	private float cpuPercentage;
 
 	private float freeDiskPercentage;
@@ -30,6 +32,8 @@ public class HostDTO {
     private boolean mysqlRunning;
     
     private boolean mysqlSock;
+    
+    private long dataTimestamp;
 
 	public long getId() {
 		return id;
@@ -41,6 +45,14 @@ public class HostDTO {
 
 	public String getClusterName() {
 		return clusterName;
+	}
+
+	public String getHostName() {
+		return HostName;
+	}
+
+	public void setHostName(String hostName) {
+		HostName = hostName;
 	}
 
 	public void setClusterName(String clusterName) {
@@ -143,18 +155,23 @@ public class HostDTO {
 		this.mysqlSock = mysqlSock;
 	}
 
+	public long getDataTimestamp() {
+		return dataTimestamp;
+	}
+
+	public void setDataTimestamp(long dataTimestamp) {
+		this.dataTimestamp = dataTimestamp;
+	}
+
 	@Override
 	public String toString() {
-		return "HostDTO [id=" + id + ", clusterName=" + clusterName + ", cpuPercentage=" + cpuPercentage
-				+ ", freeDiskPercentage=" + freeDiskPercentage + ", totalDiskSize=" + totalDiskSize + ", freeDiskSize="
-				+ freeDiskSize + ", mysqlDataSize=" + mysqlDataSize + ", ghostVersion=" + ghostVersion
-				+ ", ghostSockCount=" + ghostSockCount + ", ghostPostponeFile=" + ghostPostponeFile + ", ghostRunning="
-				+ ghostRunning + ", mysqlPid=" + mysqlPid + ", mysqlRunning=" + mysqlRunning + ", mysqlSock="
-				+ mysqlSock + "]";
+		return "HostDTO [id=" + id + ", clusterName=" + clusterName + ", HostName=" + HostName + ", cpuPercentage="
+				+ cpuPercentage + ", freeDiskPercentage=" + freeDiskPercentage + ", totalDiskSize=" + totalDiskSize
+				+ ", freeDiskSize=" + freeDiskSize + ", mysqlDataSize=" + mysqlDataSize + ", ghostVersion="
+				+ ghostVersion + ", ghostSockCount=" + ghostSockCount + ", ghostPostponeFile=" + ghostPostponeFile
+				+ ", ghostRunning=" + ghostRunning + ", mysqlPid=" + mysqlPid + ", mysqlRunning=" + mysqlRunning
+				+ ", mysqlSock=" + mysqlSock + ", dataTimestamp=" + dataTimestamp + "]";
 	}
-    
-    
-	
-	
+
 
 }

@@ -4,6 +4,10 @@ public class MySQLDTO {
 	
 	private long id;
 
+	private String clusterName;
+	
+	private String HostName;
+	
 	private String reportHostName;
 	
 	private String mysqlVersion;
@@ -19,6 +23,8 @@ public class MySQLDTO {
 	private String slaveHostName;
 	
 	private String masterHostName;
+	
+	private long dataTimestamp;
 
 	public long getId() {
 		return id;
@@ -26,6 +32,22 @@ public class MySQLDTO {
 
 	public void setId(long id) {
 		this.id = id;
+	}
+
+	public String getClusterName() {
+		return clusterName;
+	}
+
+	public void setClusterName(String clusterName) {
+		this.clusterName = clusterName;
+	}
+
+	public String getHostName() {
+		return HostName;
+	}
+
+	public void setHostName(String hostName) {
+		HostName = hostName;
 	}
 
 	public String getReportHostName() {
@@ -76,8 +98,6 @@ public class MySQLDTO {
 		this.slaveCount = slaveCount;
 	}
 
-	
-	
 	public String getSlaveHostName() {
 		return slaveHostName;
 	}
@@ -94,15 +114,23 @@ public class MySQLDTO {
 		this.masterHostName = masterHostName;
 	}
 
-	@Override
-	public String toString() {
-		return "MySQLDTO [id=" + id + ", reportHostName=" + reportHostName + ", mysqlVersion=" + mysqlVersion
-				+ ", innodbVersion=" + innodbVersion + ", readOnly=" + readOnly + ", masterActiveCount="
-				+ masterActiveCount + ", slaveCount=" + slaveCount + ", slaveHostName=" + slaveHostName
-				+ ", masterHostName=" + masterHostName + "]";
+	public long getDataTimestamp() {
+		return dataTimestamp;
 	}
 
-	
-	
+	public void setDataTimestamp(long dataTimestamp) {
+		this.dataTimestamp = dataTimestamp;
+	}
+
+	@Override
+	public String toString() {
+		return "MySQLDTO [id=" + id + ", clusterName=" + clusterName + ", HostName=" + HostName + ", reportHostName="
+				+ reportHostName + ", mysqlVersion=" + mysqlVersion + ", innodbVersion=" + innodbVersion + ", readOnly="
+				+ readOnly + ", masterActiveCount=" + masterActiveCount + ", slaveCount=" + slaveCount
+				+ ", slaveHostName=" + slaveHostName + ", masterHostName=" + masterHostName + ", dataTimestamp="
+				+ dataTimestamp + "]";
+	}
+
+
 	
 }

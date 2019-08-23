@@ -3,6 +3,8 @@ package com.bae.moumyah.schedule;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.time.format.DateTimeFormatter;
 import java.util.Iterator;
 import java.util.List;
@@ -29,7 +31,8 @@ public class ScheduleService {
 	
 	private static final Logger logger = LoggerFactory.getLogger(ScheduleService.class);
     private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
-	
+    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd:HH:mm:ss");
+    
     
     @Autowired
     ScheduleSystemComponent scheduleSystemComponent;
@@ -46,6 +49,9 @@ public class ScheduleService {
 	
 	@Value("${console.cluster_name}")
     private String clusterName;
+
+	@Value("${console.host_name}")
+    private String hostName;
 	
 	
 	private String mysqlDirectory = "/mysql";
@@ -71,6 +77,7 @@ public class ScheduleService {
     		HostDTO hostDTO = new  HostDTO(); 
     		hostDTO.setId(clientId);
     		hostDTO.setClusterName(clusterName);
+    		hostDTO.setHostName(hostName);
     		
     		
     		File mysqlDirectory    = new File(this.mysqlDirectory);
@@ -86,6 +93,7 @@ public class ScheduleService {
     		int cnt = 0;
     		boolean isFile = false;
     		boolean isProcess = false;
+    		Long dataTimestamp = 0L;
     		
     		/*
     		 * CPU
@@ -177,6 +185,14 @@ public class ScheduleService {
     		logger.debug("DEBUG: mysqld sock : "+ isFile);
     		
     		
+    		/*
+    		 * timestamp
+    		 */
+    		Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+    		dataTimestamp = timestamp.getTime();
+    		logger.debug("DEBUG: data timestamp : "+ dataTimestamp + " : "+ sdf.format(dataTimestamp));
+    		hostDTO.setDataTimestamp(dataTimestamp);
+    		
     		
     		/*
     		 * Gson setup using url and HostDTO
@@ -233,14 +249,18 @@ public class ScheduleService {
     		
     		MySQLDTO mysqlDTO = new MySQLDTO();
     		mysqlDTO.setId(clientId);
-    		mysqlDTO.setReportHostName(clusterName);
-    		
+    		mysqlDTO.setClusterName(clusterName);
+    		mysqlDTO.setHostName(hostName);
+    
     		
     		List<String> list = null;
     		Iterator<String> itr = null;
     		
     		List<Integer> listIntg = null;
     		Iterator<Integer> itrIntg = null;
+    		
+    		
+    		Long dataTimestamp = 0L;
     		
     		
     		/*
@@ -404,8 +424,14 @@ public class ScheduleService {
     			
     		}
     		
-    	    		
- 
+    		
+    		/*
+    		 * timestamp
+    		 */
+    		Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+    		dataTimestamp = timestamp.getTime();
+    		logger.debug("DEBUG: data timestamp : "+ dataTimestamp + " : "+ sdf.format(dataTimestamp));
+    		mysqlDTO.setDataTimestamp(dataTimestamp);
     		
     		/*
     		 * Gson setup using url and mysqlDTO
