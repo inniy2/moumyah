@@ -1,12 +1,13 @@
 package com.bae.moumyah.schedule;
 
+
 public class MySQLDTO {
 	
 	private long id;
 
 	private String clusterName;
 	
-	private String HostName;
+	private String hostName;
 	
 	private String reportHostName;
 	
@@ -43,11 +44,11 @@ public class MySQLDTO {
 	}
 
 	public String getHostName() {
-		return HostName;
+		return hostName;
 	}
 
 	public void setHostName(String hostName) {
-		HostName = hostName;
+		this.hostName = hostName;
 	}
 
 	public String getReportHostName() {
@@ -124,13 +125,14 @@ public class MySQLDTO {
 
 	@Override
 	public String toString() {
-		return "MySQLDTO [id=" + id + ", clusterName=" + clusterName + ", HostName=" + HostName + ", reportHostName="
+		return "MySQLDTO [id=" + id + ", clusterName=" + clusterName + ", hostName=" + hostName + ", reportHostName="
 				+ reportHostName + ", mysqlVersion=" + mysqlVersion + ", innodbVersion=" + innodbVersion + ", readOnly="
 				+ readOnly + ", masterActiveCount=" + masterActiveCount + ", slaveCount=" + slaveCount
 				+ ", slaveHostName=" + slaveHostName + ", masterHostName=" + masterHostName + ", dataTimestamp="
 				+ dataTimestamp + "]";
 	}
 
-
+	
+	
 	
 }

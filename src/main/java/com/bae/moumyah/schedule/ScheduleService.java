@@ -6,6 +6,7 @@ import java.io.UnsupportedEncodingException;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -60,7 +61,65 @@ public class ScheduleService {
 	private String mysqldPid = "/var/run/mysqld/mysqld.pid";
 	private String mysqldSock = "/var/run/mysqld/mysqld.sock";
 
+	
+	@Scheduled(fixedRateString = "${console.fetch_metrics}")
+	public void sendTableList() {
+		
+		try {
+			/*
+			 * Set server url to feed up the information
+			 */
+			String apiUrl = "/table/savetable";
+			
+			
+			List<TableDTO> tableListDTO = new ArrayList<TableDTO>();
+			
+			List<String[]> resultSet = scheduleRepository.findTableList();
+			
+			Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+    		Long dataTimestamp = timestamp.getTime();
+    		logger.debug("DEBUG: data timestamp : "+ timestamp);
+    		logger.debug("DEBUG: data time : "+ dataTimestamp + " : "+ sdf.format(dataTimestamp));
+			
+			resultSet.forEach(e -> tableListDTO.add(new TableDTO(clientId,clusterName,hostName,e[0], e[1], new Long(e[2]),dataTimestamp)));
+			
+			/*
+			 * Gson setup using url and HostDTO
+			 * Objec to Json
+			 * Send Json via post 
+			 */
+		    Gson         gson          = new Gson();
+		    HttpClient   httpClient    = HttpClientBuilder.create().build();
+		    HttpPost     post          = new HttpPost(postUrl+apiUrl);
+		    StringEntity postingString = new StringEntity(gson.toJson(tableListDTO));//gson.tojson() converts your pojo to json
+		    
+		    post.setEntity(postingString);
+		    post.setHeader("Content-type", "application/json");
+		    logger.debug("------------------------ TABLE_TO_JSON -------------------");
+		    logger.error(gson.toJson(tableListDTO));
+		    HttpResponse  response = httpClient.execute(post);
 
+    	    if(response.getStatusLine().getStatusCode() != 200) {
+    	    	logger.debug("------------------------ TABLE_RETUEN_ERROR -------------------");
+    	    	logger.error(postUrl+apiUrl);
+    	    	logger.error(response.getStatusLine().toString());
+    	    }else {
+    	    	logger.debug("------------------------ TABLE_RETUEN_SUCCESS -------------------");
+    	    	logger.debug(postUrl+apiUrl);
+    	    	logger.debug(response.getStatusLine().toString());
+    	    }
+		    
+		}catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}    
+		
+		
+	}
+	
 	
     @Scheduled(fixedRateString = "${console.fetch_metrics}")
     public void sendHostDTO() {
@@ -83,8 +142,8 @@ public class ScheduleService {
     		File mysqlDirectory    = new File(this.mysqlDirectory);
     		File tempDirectory     = new File(this.tmpDirectory);
     		File ghostPostponeFlag = new File(this.ghostPostponeFlag);
-    		File mysqldPid          = new File(this.mysqldPid);
-    		File mysqldSock         = new File(this.mysqldSock);
+    		File mysqldPid         = new File(this.mysqldPid);
+    		File mysqldSock        = new File(this.mysqldSock);
     		
     		
     		float fVaule = 0L;
@@ -94,6 +153,12 @@ public class ScheduleService {
     		boolean isFile = false;
     		boolean isProcess = false;
     		Long dataTimestamp = 0L;
+    		
+    		logger.debug("------------------------ HOST_DTO_DEBUG_LIST -------------------");
+    		
+    		logger.debug("DEBUG: id : "+ hostDTO.getId());
+    		logger.debug("DEBUG: cluster name : "+ hostDTO.getClusterName());
+    		logger.debug("DEBUG: host name : "+ hostDTO.getHostName());
     		
     		/*
     		 * CPU
@@ -163,7 +228,7 @@ public class ScheduleService {
     		
     		
     		/*
-    		 * gh-ost postphone flag file
+    		 * mysql pid file
     		 */
     		isFile = mysqldPid.exists();
     		hostDTO.setMysqlPid(isFile);
@@ -181,7 +246,7 @@ public class ScheduleService {
     		 * mysqld sock
     		 */
     		isFile = mysqldSock.exists();
-    		hostDTO.setMysqlPid(isFile);
+    		hostDTO.setMysqlSock(isFile);
     		logger.debug("DEBUG: mysqld sock : "+ isFile);
     		
     		
@@ -190,7 +255,8 @@ public class ScheduleService {
     		 */
     		Timestamp timestamp = new Timestamp(System.currentTimeMillis());
     		dataTimestamp = timestamp.getTime();
-    		logger.debug("DEBUG: data timestamp : "+ dataTimestamp + " : "+ sdf.format(dataTimestamp));
+    		logger.debug("DEBUG: data timestamp : "+ timestamp);
+    		logger.debug("DEBUG: data time : "+ dataTimestamp + " : "+ sdf.format(dataTimestamp));
     		hostDTO.setDataTimestamp(dataTimestamp);
     		
     		
@@ -206,18 +272,18 @@ public class ScheduleService {
     	    
     	    post.setEntity(postingString);
     	    post.setHeader("Content-type", "application/json");
+    	    logger.debug("------------------------ HOST_TO_JSON -------------------");
+    	    logger.error(gson.toJson(hostDTO));
     	    HttpResponse  response = httpClient.execute(post);
 
     	    if(response.getStatusLine().getStatusCode() != 200) {
-    	    	logger.debug("------------------------ ERROR -------------------");
-    	    	logger.error(postUrl);
+    	    	logger.debug("------------------------ HOST_RETUEN_ERROR -------------------");
+    	    	logger.error(postUrl+apiUrl);
     	    	logger.error(response.getStatusLine().toString());
-    	    	logger.error(gson.toJson(hostDTO));
     	    }else {
-    	    	logger.debug("------------------------ DEBUG -------------------");
-    	    	logger.debug(postUrl);
+    	    	logger.debug("------------------------ HOST_RETUEN_SUCCESS -------------------");
+    	    	logger.debug(postUrl+apiUrl);
     	    	logger.debug(response.getStatusLine().toString());
-    	    	logger.debug(gson.toJson(hostDTO));
     	    }
     	    
     	    
@@ -262,6 +328,11 @@ public class ScheduleService {
     		
     		Long dataTimestamp = 0L;
     		
+    		logger.debug("------------------------ MYSQL_DTO_DEBUG_LIST -------------------");
+    		
+    		logger.debug("DEBUG: id : "+ mysqlDTO.getId());
+    		logger.debug("DEBUG: cluster name : "+ mysqlDTO.getClusterName());
+    		logger.debug("DEBUG: host name : "+ mysqlDTO.getHostName());
     		
     		/*
     		 * set innodb version
@@ -425,12 +496,14 @@ public class ScheduleService {
     		}
     		
     		
+    	
     		/*
     		 * timestamp
     		 */
     		Timestamp timestamp = new Timestamp(System.currentTimeMillis());
     		dataTimestamp = timestamp.getTime();
-    		logger.debug("DEBUG: data timestamp : "+ dataTimestamp + " : "+ sdf.format(dataTimestamp));
+    		logger.debug("DEBUG: data timestamp : "+ timestamp);
+    		logger.debug("DEBUG: data time : "+ dataTimestamp + " : "+ sdf.format(dataTimestamp));
     		mysqlDTO.setDataTimestamp(dataTimestamp);
     		
     		/*
@@ -445,19 +518,19 @@ public class ScheduleService {
     	    
     	    post.setEntity(postingString);
     	    post.setHeader("Content-type", "application/json");
+    	    logger.debug("------------------------ MYSQL_MODE_TO_JSON -------------------");
+    	    logger.error(gson.toJson(mysqlDTO));
     	    HttpResponse  response = httpClient.execute(post);
     	    
     	    
     	    if(response.getStatusLine().getStatusCode() != 200) {
-    	    	logger.debug("------------------------ ERROR -------------------");
-    	    	logger.error(postUrl);
+    	    	logger.debug("------------------------ MYSQL_NODE_RETUEN_ERROR -------------------");
+    	    	logger.error(postUrl+apiUrl);
     	    	logger.error(response.getStatusLine().toString());
-    	    	logger.error(gson.toJson(mysqlDTO));
     	    }else {
-    	    	logger.debug("------------------------ DEBUG -------------------");
-    	    	logger.debug(postUrl);
+    	    	logger.debug("------------------------ MYSQL_NODE_RETUEN_SUCCESS -------------------");
+    	    	logger.debug(postUrl+apiUrl);
     	    	logger.debug(response.getStatusLine().toString());
-    	    	logger.debug(gson.toJson(mysqlDTO));
     	    }
     	    
     	    

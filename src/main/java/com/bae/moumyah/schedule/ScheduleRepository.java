@@ -23,6 +23,19 @@ public class ScheduleRepository {
     private JdbcTemplate jdbcTemplate;
 	
 	
+	public List<String[]> findTableList(){
+		
+		String sql = "select table_schema, table_name, case when (data_length + index_length + data_free) is null then 0 else (data_length + index_length + data_free) END as data_length from information_schema.tables where table_schema not in ('information_schema','mysql','performance_schema','percona','sys')";
+		
+		logger.debug("sql: "+sql);
+		
+		List<String[]> result = jdbcTemplate.query(sql,
+					(rs, rowNum) -> new String[]{rs.getString("table_schema"), rs.getString("table_name"), rs.getString("data_length")}
+		);
+		
+		return result;
+		
+	}
 	
 	public List<String> findMasterHostInSlaveStatus(){
 	

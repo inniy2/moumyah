@@ -7,7 +7,7 @@ public class HostDTO {
 
 	private String clusterName;
 	
-	private String HostName;
+	private String hostName;
 	
 	private float cpuPercentage;
 
@@ -48,11 +48,11 @@ public class HostDTO {
 	}
 
 	public String getHostName() {
-		return HostName;
+		return hostName;
 	}
 
 	public void setHostName(String hostName) {
-		HostName = hostName;
+		this.hostName = hostName;
 	}
 
 	public void setClusterName(String clusterName) {
@@ -165,13 +165,17 @@ public class HostDTO {
 
 	@Override
 	public String toString() {
-		return "HostDTO [id=" + id + ", clusterName=" + clusterName + ", HostName=" + HostName + ", cpuPercentage="
+		return "HostDTO [id=" + id + ", clusterName=" + clusterName + ", hostName=" + hostName + ", cpuPercentage="
 				+ cpuPercentage + ", freeDiskPercentage=" + freeDiskPercentage + ", totalDiskSize=" + totalDiskSize
 				+ ", freeDiskSize=" + freeDiskSize + ", mysqlDataSize=" + mysqlDataSize + ", ghostVersion="
 				+ ghostVersion + ", ghostSockCount=" + ghostSockCount + ", ghostPostponeFile=" + ghostPostponeFile
 				+ ", ghostRunning=" + ghostRunning + ", mysqlPid=" + mysqlPid + ", mysqlRunning=" + mysqlRunning
 				+ ", mysqlSock=" + mysqlSock + ", dataTimestamp=" + dataTimestamp + "]";
 	}
+
+	
+
+	
 
 
 }
